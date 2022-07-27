@@ -1,0 +1,32 @@
+["NoEntry0Faces","nil"] {}
+
+["NoEntry1Faces",{{235,477,68,85}}
+
+["NoEntry2Faces", {{35,412,27,35},{300,410,29,32}}
+
+["NoEntry3Faces","nil"] {}
+
+["NoEntry4Faces", {{174,274,39,55},{495,295,33,55},{580,275,27,29},{679,286,46,44},{894,259,41,51}}
+
+["NoEntry5Faces",{{796,292,34,42}}
+
+["NoEntry6Faces","nil"] {}
+
+["NoEntry7Faces", {{388,228,20,17},{881,230,63,57}}
+
+["NoEntry8Faces","nil"] {}
+
+["NoEntry9Faces","nil"] {}
+
+["NoEntry10Faces","nil"] {}
+
+["NoEntry11Faces",{{674,400,25,31},{750,394,28,34}}
+
+["NoEntry12Faces",{{822,455,19,17}}
+
+["NoEntry13Faces","nil"] {}
+
+["NoEntry14Faces","nil"] {}
+
+["NoEntry15Faces","nil"] {}
+
