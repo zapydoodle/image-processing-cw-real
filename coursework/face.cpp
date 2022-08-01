@@ -34,13 +34,14 @@ int main( int argc, const char** argv )
     Mat frame = imread(argv[1], CV_LOAD_IMAGE_COLOR);
 
     // 2. Load the Strong Classifier in a structure called `Cascade'
-    if( !cascade.load( cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
+    if( !cascade.load( cascade_name ) ){ printf("--(!)Error loading\n"); return -1; }
 
     // 3. Detect Faces and Display Result
     detectAndDisplay( frame );
 
     // 4. Save Result Image
     imwrite( "detected.jpg", frame );
+
 
     return 0;
 }
