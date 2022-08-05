@@ -8,6 +8,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <string>
+#include <math.h>
 
 
 using namespace std;
@@ -27,7 +28,6 @@ int main( int argc, const char** argv )
     // 1. Read Input Image
     Mat frame = imread(argv[1], CV_LOAD_IMAGE_COLOR);
 
-
     // 2. Load the Strong Classifier in a structure called `Cascade'
     if( !cascade.load( cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
 
@@ -45,12 +45,14 @@ int main( int argc, const char** argv )
 
 void detectAndDisplay( Mat frame )
 {
+
+
     //Preparing image and applying Sobel filter
     std::vector<Rect> faces;
 
     std::vector<std::vector<int>> faceLocations;
     faceLocations= {{155,96,259,263}};
-
+    Mat frameCopy=frame.clone();
     Mat frame_gaussian;
     Mat frame_gray;
     Mat frame_sobel;
@@ -72,47 +74,108 @@ void detectAndDisplay( Mat frame )
     std::vector<std::vector<int>> lineCoordinates;
     //creating empty hough space
     Size frameSize=frame_sobel.size();
-    double frameHeight=frameSize.height;
-    double frameWidth=frameSize.width;
-    double frameDiagonal=sqrt((frameWidth*frameWidth)+(frameHeight*frameHeight));
-    double theta=180;
-    double thetaStep=1;
-    double rhoStep=((2*frameDiagonal)/180);
-    std::vector<double> thetas;
-    std::vector<double> rhos;
-    for(double counter=0;counter<theta;counter+=thetaStep){
+    int frameHeight=frameSize.height;
+    int frameWidth=frameSize.width;
+    int frameHeightMid=frameHeight/2;
+    int frameWidthMid=frameWidth/2;
+    int frameDiagonal=sqrt((frameWidth*frameWidth)+(frameHeight*frameHeight));
+    int theta=180;
 
-        thetas.push_back(counter);
+
+    std::vector<std::vector<int>> houghSpace((frameDiagonal*2)+1, std::vector<int>(theta, 0));
+    //updating hough space where edge pixels are present
+    //get pixel values int pixelGrayValue = (int)frame_sobel.at<uchar>(y,x);
+
+
+
+    for(int y=0;y<frameHeight;y++){
+        for(int x=0;x<frameWidth;x++){
+            if((int)frame_sobel.at<uchar>(y,x)>0){
+                for(int possibleThetas=0;possibleThetas<theta;possibleThetas++){
+                    double thetaRadian= possibleThetas*(M_PI/180);
+                    int corrospondingRho=(int)(((x-frameWidthMid)*cos(thetaRadian))+((y-frameHeightMid)*sin(thetaRadian)));//removd frameWidthMid
+
+                    int RhoIndex=corrospondingRho+frameDiagonal;
+                    houghSpace[RhoIndex][possibleThetas]+=1;
+
+                    //if((corrospondingRho>0)&&corrospondingRho<frameDiagonal*2){
+//
+                    //    houghSpace[corrospondingRho][possibleThetas]++;
+                    //}
+                }
+            }
+
+        }
     }
-    for(double counter=-frameDiagonal;counter<frameDiagonal;counter+=rhoStep){
-
-        rhos.push_back(counter);
+    //write out houghspace here
+    bool writeOut=true;
+    if(writeOut){
+        for(int y=0;y<houghSpace.size();y++){
+            for(int x=0;x<houghSpace[y].size();x++){
+                if (houghSpace[y][x]>0){
+                    //std::cout<<houghSpace[y][x]<<"\n";
+                }
+            }
+        }
     }
-    std::cout<<rhos.size()<<"\n";
-    int rhosSize=rhos.size();
-    int thetasSize=thetas.size();
-    std::vector<std::vector<int>> houghSpace(rhosSize, std::vector<int>(thetasSize, 0));
-    //setting edge pixes in hough space
+
+    int threshold=300;
+    //find lines from hough space
+    for(int y=0;y< houghSpace.size();y++){
+        for(int x=0;x<houghSpace[y].size();x++){
+
+            if (houghSpace[y][x]>=threshold){
+                int rho=y-frameDiagonal;
+
+                int theta=x;
+                double a= cos(theta*(M_PI/180));
+                double b= sin(theta*(M_PI/180));
+                int x=(a*rho)+frameWidthMid;
+                int y=(b*rho)+frameHeightMid;
+                //get points on line
+                int x1=(int) x+(1000*(-b));//removed 1000's
+                int y1=(int)y+(1000*a);
+                int x2=(int)x-(1000*(-b));
+                int y2=(int)y -(1000*a);
+                std::vector<int> pointsToAdd;
+                pointsToAdd.push_back(x1);
+                pointsToAdd.push_back(y1);
+                pointsToAdd.push_back(x2);
+                pointsToAdd.push_back(y2);
+                lineCoordinates.push_back(pointsToAdd);
+            }
+        }
+
+    }
+    for(int i=0;i<lineCoordinates.size();i++){
+        Point point1=Point(lineCoordinates[i][0],lineCoordinates[i][1]);
+        Point point2=Point(lineCoordinates[i][2],lineCoordinates[i][3]);
+        line(frame,point1,point2,Scalar(0,255,0),1);
+
+    }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    //line(frameCopy,Point(10,40),Point(300,350),Scalar(255,0,0),2);
+    imwrite( "framelines.jpg", frame );
+    //imwrite( "framefunny.jpg", frameCopy );
+    Size frame1Size=frame.size();
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
