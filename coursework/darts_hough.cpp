@@ -15,7 +15,7 @@ using namespace std;
 using namespace cv;
 
 /** Function Headers */
-void detectAndDisplay( Mat frame );
+void detectAndDisplay( Mat frame ,int threshold);
 
 /** Global variables */
 String cascade_name = "cascade.xml";
@@ -25,14 +25,24 @@ CascadeClassifier cascade;
 /** @function main */
 int main( int argc, const char** argv )
 {
+    int threshold=125;
+
     // 1. Read Input Image
     Mat frame = imread(argv[1], CV_LOAD_IMAGE_COLOR);
 
     // 2. Load the Strong Classifier in a structure called `Cascade'
     if( !cascade.load( cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
+    if(argc==3){
+        const char* thresholdArg;
+        thresholdArg=argv[2];
+
+        stringstream s(thresholdArg);
+        s >> threshold;
+
+    }
 
     // 3. Detect Faces and Display Result
-    detectAndDisplay( frame );
+    detectAndDisplay( frame,threshold );
 
     // 4. Save Result Image
     //UNCOMMENT THIS!
@@ -43,7 +53,7 @@ int main( int argc, const char** argv )
 }
 
 
-void detectAndDisplay( Mat frame )
+void detectAndDisplay( Mat frame,int threshold )
 {
 
 
@@ -56,18 +66,24 @@ void detectAndDisplay( Mat frame )
     Mat frame_gaussian;
     Mat frame_gray;
     Mat frame_sobel;
+    Mat frame_canny;
     Mat sobel_x;
     Mat sobel_y;
     Mat sobel_x_converted;
     Mat sobel_y_converted;
+    Mat frame_sobel_old;
     GaussianBlur(frame, frame_gaussian, Size(3, 3), 0, 0, BORDER_DEFAULT);
     cvtColor( frame_gaussian, frame_gray, CV_BGR2GRAY );
     Sobel(frame_gray,sobel_x,CV_16S,1,0,3,1,0,BORDER_DEFAULT);
     Sobel(frame_gray,sobel_y,CV_16S,0,1,3,1,0,BORDER_DEFAULT);
     convertScaleAbs(sobel_x, sobel_x_converted);
     convertScaleAbs(sobel_y,sobel_y_converted);
-    addWeighted(sobel_x_converted, 0.5, sobel_y_converted, 0.5, 0, frame_sobel);
+    addWeighted(sobel_x_converted, 0.5, sobel_y_converted, 0.5, 0, frame_sobel);//frame_sobel_old
+    //Canny(frame, frame_sobel, 50, 200, 3);
+    //imwrite( "oldsobel.jpg", frame_sobel_old );
     imwrite( "sobel.jpg", frame_sobel );
+
+
 
     //Applying hough transform and getting points
 
@@ -90,7 +106,7 @@ void detectAndDisplay( Mat frame )
 
     for(int y=0;y<frameHeight;y++){
         for(int x=0;x<frameWidth;x++){
-            if((int)frame_sobel.at<uchar>(y,x)>0){
+            if((int)frame_sobel.at<uchar>(y,x)>220){
                 for(int possibleThetas=0;possibleThetas<theta;possibleThetas++){
                     double thetaRadian= possibleThetas*(M_PI/180);
                     int corrospondingRho=(int)(((x-frameWidthMid)*cos(thetaRadian))+((y-frameHeightMid)*sin(thetaRadian)));//removd frameWidthMid
@@ -119,7 +135,7 @@ void detectAndDisplay( Mat frame )
         }
     }
 
-    int threshold=300;
+
     //find lines from hough space
     for(int y=0;y< houghSpace.size();y++){
         for(int x=0;x<houghSpace[y].size();x++){
@@ -147,16 +163,20 @@ void detectAndDisplay( Mat frame )
         }
 
     }
+
     for(int i=0;i<lineCoordinates.size();i++){
         Point point1=Point(lineCoordinates[i][0],lineCoordinates[i][1]);
         Point point2=Point(lineCoordinates[i][2],lineCoordinates[i][3]);
         line(frame,point1,point2,Scalar(0,255,0),1);
+        line(frame_sobel,point1,point2,Scalar(100,100,100),1);
 
     }
 
 
     //line(frameCopy,Point(10,40),Point(300,350),Scalar(255,0,0),2);
     imwrite( "framelines.jpg", frame );
+    imwrite( "framelinessobel.jpg", frame_sobel);
+
     //imwrite( "framefunny.jpg", frameCopy );
     Size frame1Size=frame.size();
 
