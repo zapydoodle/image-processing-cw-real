@@ -60,7 +60,6 @@ void detectAndDisplay( Mat frame )
     Mat sobel_y;
     Mat sobel_x_converted;
     Mat sobel_y_converted;
-    Mat frame_canny;
     GaussianBlur(frame, frame_gaussian, Size(3, 3), 0, 0, BORDER_DEFAULT);
     cvtColor( frame_gaussian, frame_gray, CV_BGR2GRAY );
     Sobel(frame_gray,sobel_x,CV_16S,1,0,3,1,0,BORDER_DEFAULT);
@@ -68,8 +67,7 @@ void detectAndDisplay( Mat frame )
     convertScaleAbs(sobel_x, sobel_x_converted);
     convertScaleAbs(sobel_y,sobel_y_converted);
     addWeighted(sobel_x_converted, 0.5, sobel_y_converted, 0.5, 0, frame_sobel);
-    Canny(frame, frame_canny, 50, 200, 3);
-    imwrite( "sobel.jpg", frame_canny );
+    imwrite( "sobel.jpg", frame_sobel );
 
     //Applying hough transform and getting points
 
@@ -88,20 +86,17 @@ void detectAndDisplay( Mat frame )
     //updating hough space where edge pixels are present
     //get pixel values int pixelGrayValue = (int)frame_sobel.at<uchar>(y,x);
 
-    int highVal=0;
+
 
     for(int y=0;y<frameHeight;y++){
         for(int x=0;x<frameWidth;x++){
-            if((int)frame_canny.at<uchar>(y,x)>0){
+            if((int)frame_sobel.at<uchar>(y,x)>0){
                 for(int possibleThetas=0;possibleThetas<theta;possibleThetas++){
                     double thetaRadian= possibleThetas*(M_PI/180);
                     int corrospondingRho=(int)(((x-frameWidthMid)*cos(thetaRadian))+((y-frameHeightMid)*sin(thetaRadian)));//removd frameWidthMid
 
                     int RhoIndex=corrospondingRho+frameDiagonal;
                     houghSpace[RhoIndex][possibleThetas]+=1;
-                    if(houghSpace[RhoIndex][possibleThetas]>highVal){
-                        highVal=houghSpace[RhoIndex][possibleThetas];
-                    }
 
                     //if((corrospondingRho>0)&&corrospondingRho<frameDiagonal*2){
 //
@@ -124,8 +119,7 @@ void detectAndDisplay( Mat frame )
         }
     }
 
-    int threshold=highVal*0.4;
-    std::cout<<highVal<<"\n";
+    int threshold=300;
     //find lines from hough space
     for(int y=0;y< houghSpace.size();y++){
         for(int x=0;x<houghSpace[y].size();x++){
@@ -139,10 +133,10 @@ void detectAndDisplay( Mat frame )
                 int x=(a*rho)+frameWidthMid;
                 int y=(b*rho)+frameHeightMid;
                 //get points on line
-                int x1=(int) x+(100*(-b));//removed 1000's
-                int y1=(int)y+(100*a);
-                int x2=(int)x-(100*(-b));
-                int y2=(int)y -(100*a);
+                int x1=(int) x+(1000*(-b));//removed 1000's
+                int y1=(int)y+(1000*a);
+                int x2=(int)x-(1000*(-b));
+                int y2=(int)y -(1000*a);
                 std::vector<int> pointsToAdd;
                 pointsToAdd.push_back(x1);
                 pointsToAdd.push_back(y1);
@@ -157,14 +151,13 @@ void detectAndDisplay( Mat frame )
         Point point1=Point(lineCoordinates[i][0],lineCoordinates[i][1]);
         Point point2=Point(lineCoordinates[i][2],lineCoordinates[i][3]);
         line(frame,point1,point2,Scalar(0,255,0),1);
-        line(frame_canny,point1,point2,Scalar(255,255,255),1);
 
     }
 
 
     //line(frameCopy,Point(10,40),Point(300,350),Scalar(255,0,0),2);
     imwrite( "framelines.jpg", frame );
-    imwrite( "framelinessobel.jpg", frame_canny);
+    //imwrite( "framefunny.jpg", frameCopy );
     Size frame1Size=frame.size();
 
 
