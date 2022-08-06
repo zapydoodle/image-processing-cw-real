@@ -54,7 +54,7 @@ void detectAndDisplay( Mat frame )
     std::vector<Rect> faces;
 
     std::vector<std::vector<int> > faceLocations;
-    faceLocations= {};
+    faceLocations= {{63,133,57,72},{45,235,75,90},{190,201,60,79},{252,165,51,63},{293,232,51,69},{381,185,50,58},{427,225,56,72},{517,177,47,58},{561,235,53,76},{646,182,48,64},{681,238,45,66}};
 
     Mat frame_gray;
 
@@ -129,7 +129,7 @@ void detectAndDisplay( Mat frame )
 
             }
         }
-        float tpr= iouValues.size()/float(faceLocations.size());
+        float tpr= iouValues.size()/float(faceLocations.size()+iouValues.size());
         std::cout<<"tpr: "<<tpr<<std::endl;
         int truePositive=iouValues.size();
         int falsePositive=faces.size()-iouValues.size();

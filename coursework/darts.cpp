@@ -58,7 +58,7 @@ void detectAndDisplay( Mat frame )
 	std::vector<Rect> faces;
 
     std::vector<std::vector<int>> faceLocations;
-    faceLocations= {{155,96,259,263}};
+    faceLocations= {{97,79,162,158},{956,73,178,166}};
 
 	Mat frame_gray;
 
@@ -129,13 +129,14 @@ void detectAndDisplay( Mat frame )
 
             }
         }
-        float tpr= iouValues.size()/float(faceLocations.size());
-        std::cout<<"tpr: "<<tpr<<std::endl;
+
         int truePositive=iouValues.size();
         int falsePositive=faces.size()-iouValues.size();
         int falseNegative=faceLocations.size()-iouValues.size();
         float Precision=truePositive/float(truePositive+falsePositive);
         float Recall=truePositive/float(truePositive+falseNegative);
+        float tpr= iouValues.size()/float(faceLocations.size()+iouValues.size());
+        std::cout<<"tpr: "<<tpr<<std::endl;
         float f1Score=(Precision*Recall)/float(float(Precision+Recall)/2);
         std::cout<<"F1 Score: "<<f1Score<<std::endl;
 
